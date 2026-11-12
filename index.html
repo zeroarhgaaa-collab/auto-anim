@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>AutoAnim AI - Anima con Texto y Referencia</title>
+<style>
+  body { background:#09090b; color:#fff; font-family:system-ui, sans-serif; margin:0; padding:20px; display:flex; flex-wrap:wrap; gap:30px; justify-content:center; }
+  .card { background:#121215; border:1px solid #27272a; border-radius:16px; padding:24px; width:380px; }
+  label { display:block; font-size:13px; color:#a1a1aa; margin-bottom:6px; font-weight:bold; }
+  input, textarea { width:100%; background:#09090b; border:1px solid #3f3f46; color:#fff; padding:10px; border-radius:8px; margin-bottom:16px; box-sizing:border-box; font-family:inherit; }
+  button { width:100%; background:linear-gradient(90deg, #9333ea, #ec4899); color:#fff; border:none; padding:14px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:15px; }
+  button:disabled { opacity:0.5; }
+  .box { background:#000; border:2px solid #27272a; border-radius:16px; width:340px; height:480px; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; overflow:hidden; }
+  video { width:100%; height:100%; object-fit:cover; border-radius:12px; display:none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h3 style="margin-top:0;">Animador Automático con IA</h3>
+  <label>1. Enlace de imagen de referencia (Opcional):</label>
+  <input type="text" id="imgUrl" placeholder="Pega el link de una imagen (https://...)">
+
+  <label>2. Describe qué pasa en el video:</label>
+  <textarea id="prompt" rows="4">Anime girl smiling softly, wind blowing her dark hair, blinking eyes, high quality smooth animation</textarea>
+
+  <button id="btn" onclick="generar()">✨ Generar Video Automático</button>
+  <p id="st" style="color:#a855f7; font-size:13px; text-align:center;"></p>
+</div>
+
+<div class="box">
+  <p id="msg" style="color:#a1a1aa; font-size:14px;">Aquí aparecerá tu video animado generado por IA.</p>
+  <video id="vid" controls autoplay loop></video>
+</div>
+
+<script>
+async function generar() {
+  const prompt = document.getElementById('prompt').value.trim();
+  const imgUrl = document.getElementById('imgUrl').value.trim();
+  if (!prompt) return alert('Escribe una descripción primero');
+
+  const btn = document.getElementById('btn');
+  const st = document.getElementById('st');
+  btn.disabled = true;
+  st.innerText = 'La IA está animando tu escena (tarda unos 40 seg)...';
+
+  try {
+    const res = await fetch('/api/animar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, imgUrl })
+    });
+    const data = await res.json();
+    if (data.videoUrl) {
+      document.getElementById('msg').style.display = 'none';
+      const v = document.getElementById('vid');
+      v.src = data.videoUrl;
+      v.style.display = 'block';
+      st.innerText = '¡Animación lista!';
+    } else {
+      st.innerText = 'Error: ' + (data.error || 'Configura FAL_KEY en Vercel');
+    }
+  } catch (e) {
+    st.innerText = 'Error de conexión con el servidor.';
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
